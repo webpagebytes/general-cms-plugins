@@ -18,6 +18,7 @@ package com.webpagebytes.plugins;
 
 import java.io.File;
 
+
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -78,8 +79,8 @@ public class WPBLocalFileStorage implements WPBFileStorage {
 			initializeFileStorage(dataDirectory);
 		} catch (Exception e)
 		{
-			log.log(Level.SEVERE, "Cannot initialize WBLocalCloudFileStorage for " + dataDirectory, e);
-			throw new WPBIOException("Cannot initialize WBLocalCloudFileStorage", e);
+			log.log(Level.SEVERE, "Cannot initialize WBLocalFileStorage for " + dataDirectory, e);
+			throw new WPBIOException("Cannot initialize WBLocalFileStorage", e);
 		}	
 	}
 	/*
