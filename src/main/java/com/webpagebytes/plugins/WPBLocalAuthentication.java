@@ -17,7 +17,6 @@
 package com.webpagebytes.plugins;
 
 import java.io.File;
-import java.util.HashMap;
 import java.util.Map;
 
 import javax.servlet.http.Cookie;
@@ -31,14 +30,34 @@ import com.webpagebytes.cms.utility.CmsBase64Utility;
 
 public class WPBLocalAuthentication implements WPBAuthentication {
 
-	public static final String TOKEN_COOKIE = "wpbToken";
-	private Map<String, String> authenticationParams = new HashMap<String, String>();
+	public static final String TOKEN_COOKIE = "tokenCookie";
+	public static final String LOGIN_PAGE_URL = "loginPageUrl";
+	public static final String PROFILE_PAGE_URL = "profilePageUrl";
+	public static final String LOGOUT_PAGE_URL = "logoutPageUrl";
+
+	public static String tokenCookie;
+	public static String loginPageUrl;
+	public static String profilePageUrl;
+	public static String logoutPageUrl;
 	
 	public void initialize(Map<String, String> params) throws WPBException
 	{
-		if (params != null)
+		Map<String, String> configs = ConfigReader.getConfigs();
+		
+		if (configs == null || configs.size() == 0)
 		{
-			authenticationParams.putAll(params);
+			throw new WPBException("No configs for WPBLocalAuthentication");
+		}
+		tokenCookie = configs.get(TOKEN_COOKIE);
+		loginPageUrl = configs.get(LOGIN_PAGE_URL);
+		profilePageUrl = configs.get(PROFILE_PAGE_URL);
+		logoutPageUrl = configs.get(LOGOUT_PAGE_URL);
+		if (tokenCookie == null || tokenCookie.length() == 0 ||
+			loginPageUrl == null || loginPageUrl.length() == 0 ||
+			profilePageUrl == null || profilePageUrl.length() == 0 ||
+			logoutPageUrl == null || logoutPageUrl.length() == 0 )
+		{
+			throw new WPBException("Bad configs for WPBLocalAuthentication");
 		}		
 	}
 	
@@ -48,7 +67,7 @@ public class WPBLocalAuthentication implements WPBAuthentication {
 		if (cookies == null) return null;
 		for(Cookie cookie: cookies)
 		{
-			if (cookie.getName().equals(TOKEN_COOKIE))
+			if (cookie.getName().equals(WPBLocalAuthentication.tokenCookie))
 			{
 				return cookie.getValue();
 			}
@@ -61,9 +80,9 @@ public class WPBLocalAuthentication implements WPBAuthentication {
 		// this authentication takes the token as base64, decodes it and verifies if it's a file, if yes then the filename 
 		//is the userIdentifier 
 		WPBDefaultAuthenticationResult result = new WPBDefaultAuthenticationResult();
-		result.setLoginLink(authenticationParams.get(WPBAuthentication.CONFIG_LOGIN_PAGE_URL));
-		result.setLogoutLink(authenticationParams.get(WPBAuthentication.CONFIG_LOGOUT_URL));
-		result.setUserProfileLink(authenticationParams.get(WPBAuthentication.CONFIG_PROFILE_URL));
+		result.setLoginLink(loginPageUrl);
+		result.setLogoutLink(logoutPageUrl);
+		result.setUserProfileLink(profilePageUrl);
 		
 		String token = getTokenCookie(request);
 		if (token == null) return result;

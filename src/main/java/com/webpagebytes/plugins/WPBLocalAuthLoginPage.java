@@ -17,6 +17,7 @@
 package com.webpagebytes.plugins;
 
 import java.io.File;
+import java.util.Map;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
@@ -61,38 +62,32 @@ private static final String login_page = " " +
 private static final String ERROR_NO_USER = "User name cannot be empty";
 private static final String ERROR_INVALID = "Invalid characters for user name";
 
-private String uri_login = "";
+private String uri_login_post = "";
 private String uri_login_redirect = "";
-public static final String URL_LOGIN_POST_CONFIG = "url-login-post"; 
-public static final String URL_LOGIN_REDIRECT_CONFIG = "url-login-redirect-success";
+public static final String URL_LOGIN_POST_CONFIG = "loginPostUrl"; 
+public static final String URL_LOGIN_REDIRECT_CONFIG = "loginRedirectSuccess";
 public static final String DIR_TEMP_USERS = "wpbTempUsers"; 
 
 public void init() throws ServletException
-{
-	uri_login = this.getInitParameter(URL_LOGIN_POST_CONFIG);
-	if (uri_login == null || uri_login.length() == 0)
+{	
+	Map<String, String> configs = ConfigReader.getConfigs();
+	uri_login_post = configs.get(URL_LOGIN_POST_CONFIG);
+	if (uri_login_post == null || uri_login_post.length() == 0)
 	{
-		uri_login =  this.getServletContext().getInitParameter(URL_LOGIN_POST_CONFIG);
-		if (uri_login == null || uri_login.length() == 0)
-		{
-			throw new ServletException("No parameter url-login-post specified");
-		}
+		throw new ServletException("No parameter url-login-post specified");
 	}
 	
-	uri_login_redirect = this.getInitParameter(URL_LOGIN_REDIRECT_CONFIG);
+	uri_login_redirect = configs.get(URL_LOGIN_REDIRECT_CONFIG);
 	if (uri_login_redirect == null || uri_login_redirect.length() == 0)
 	{
-		uri_login_redirect = this.getServletContext().getInitParameter(URL_LOGIN_REDIRECT_CONFIG);
-		if (uri_login_redirect == null || uri_login_redirect.length() == 0)
-		{
-			throw new ServletException("No parameter url-login-redirect-success specified");
-		}
+		throw new ServletException("No parameter url-login-redirect-success specified");
 	}
 }
+
 public void doGet(HttpServletRequest req, HttpServletResponse resp)
 	     throws ServletException, java.io.IOException
 {
-	String html = login_page.replaceAll("STR_ACTION", uri_login).replaceAll("STR_ERROR", "");
+	String html = login_page.replaceAll("STR_ACTION", uri_login_post).replaceAll("STR_ERROR", "");
 	resp.getOutputStream().write(html.getBytes());
 	resp.flushBuffer();
 }
@@ -120,14 +115,14 @@ public void doPost(HttpServletRequest req, HttpServletResponse resp)
 	String userName = req.getParameter("userName");
 	if (userName == null || userName.length() == 0)
 	{
-		String html = login_page.replaceAll("STR_ACTION", uri_login).replaceAll("STR_ERROR", ERROR_NO_USER);
+		String html = login_page.replaceAll("STR_ACTION", uri_login_post).replaceAll("STR_ERROR", ERROR_NO_USER);
 		resp.getOutputStream().write(html.getBytes());
 		resp.flushBuffer();		
 		return;
 	}
 	if (!userName.matches("[0-9a-zA-Z@_.-]*"))
 	{
-		String html = login_page.replaceAll("STR_ACTION", uri_login).replaceAll("STR_ERROR", ERROR_INVALID);
+		String html = login_page.replaceAll("STR_ACTION", uri_login_post).replaceAll("STR_ERROR", ERROR_INVALID);
 		resp.getOutputStream().write(html.getBytes());
 		resp.flushBuffer();		
 		return;
@@ -139,7 +134,7 @@ public void doPost(HttpServletRequest req, HttpServletResponse resp)
 	{
 		file.createNewFile();
 	}
-	Cookie cookie = new Cookie(WPBLocalAuthentication.TOKEN_COOKIE, CmsBase64Utility.toSafePathBase64(loginFilePath.getBytes()));
+	Cookie cookie = new Cookie(WPBLocalAuthentication.tokenCookie, CmsBase64Utility.toSafePathBase64(loginFilePath.getBytes()));
 	cookie.setPath("/");
 	cookie.setMaxAge(1000000);
 	resp.addCookie(cookie);
