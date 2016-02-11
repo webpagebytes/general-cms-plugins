@@ -33,18 +33,23 @@ import com.webpagebytes.plugins.WPBSQLDataStoreDao.WBSQLSortDirection;
 
 public class WPBSQLAdminDataStorage implements WPBAdminDataStorage {
 	private static final Logger log = Logger.getLogger(WPBSQLAdminDataStorage.class.getName());
-	private static final String KEY_FILED_NAME = "externalKey";
+	private static final String DEFAULT_KEY_FIELD_NAME = "externalKey";
+	private static final String CONFIG_KEY_FIELD_NAME = "keyFieldName";
 	
 	private WPBSQLDataStoreDao sqlDataStorageDao;
-	
+	private String keyFieldName;
 	public WPBSQLAdminDataStorage()
 	{
-		
+		keyFieldName = DEFAULT_KEY_FIELD_NAME;
 	}
 
 	public void initialize(Map<String, String> params) throws WPBIOException
 	{
 		sqlDataStorageDao = new WPBSQLDataStoreDao(params);
+		if (params != null && params.containsKey(CONFIG_KEY_FIELD_NAME))
+		{
+			keyFieldName = params.get(CONFIG_KEY_FIELD_NAME);
+		}
 	}
 	private WPBSQLDataStoreDao.WBSQLQueryOperator adminOperatorToSQLOperator(AdminQueryOperator adminOperator)
 	{
@@ -87,9 +92,9 @@ public class WPBSQLAdminDataStorage implements WPBAdminDataStorage {
 		try
 		{
 			log.log(Level.INFO, "delete records {0}", recordid);
-			sqlDataStorageDao.deleteRecord(dataClass, KEY_FILED_NAME, recordid);			
+			sqlDataStorageDao.deleteRecord(dataClass, keyFieldName, recordid);			
 			T obj = dataClass.newInstance();
-			sqlDataStorageDao.setObjectProperty(obj, KEY_FILED_NAME, recordid);
+			sqlDataStorageDao.setObjectProperty(obj, keyFieldName, recordid);
 		} catch (Exception e)
 		{
 			throw new WPBIOException("Cannot delete record " + recordid, e);
@@ -101,9 +106,9 @@ public class WPBSQLAdminDataStorage implements WPBAdminDataStorage {
 		try
 		{
 			log.log(Level.INFO, "delete records {0}", recordid);
-			sqlDataStorageDao.deleteRecord(dataClass, KEY_FILED_NAME, recordid);
+			sqlDataStorageDao.deleteRecord(dataClass, keyFieldName, recordid);
 			T obj = dataClass.newInstance();
-			sqlDataStorageDao.setObjectProperty(obj, KEY_FILED_NAME, recordid);
+			sqlDataStorageDao.setObjectProperty(obj, keyFieldName, recordid);
 		} catch (Exception e)
 		{
 			throw new WPBIOException("Cannot delete record " + recordid, e);
@@ -165,7 +170,7 @@ public class WPBSQLAdminDataStorage implements WPBAdminDataStorage {
 		try
 		{
 			log.log(Level.INFO, "add record for class {0}", t.getClass().getSimpleName());			
-			T res = sqlDataStorageDao.addRecord(t, KEY_FILED_NAME);			
+			T res = sqlDataStorageDao.addRecord(t, keyFieldName);			
 			return res;
 		} catch (Exception e)
 		{
@@ -178,7 +183,7 @@ public class WPBSQLAdminDataStorage implements WPBAdminDataStorage {
 		try
 		{
 			log.log(Level.INFO, "add record with key for class {0}", t.getClass().getSimpleName());			
-			T res = sqlDataStorageDao.addRecordWithKey(t, KEY_FILED_NAME);
+			T res = sqlDataStorageDao.addRecordWithKey(t, keyFieldName);
 			return res;
 		} catch (Exception e)
 		{
@@ -191,7 +196,7 @@ public class WPBSQLAdminDataStorage implements WPBAdminDataStorage {
 		try
 		{
 			log.log(Level.INFO, "get record for key {0}", dataid);			
-			return (T) sqlDataStorageDao.getRecord(dataClass, KEY_FILED_NAME, dataid);
+			return (T) sqlDataStorageDao.getRecord(dataClass, keyFieldName, dataid);
 		} catch (Exception e)
 		{
 			throw new WPBIOException("Cannot add new record", e);
@@ -203,7 +208,7 @@ public class WPBSQLAdminDataStorage implements WPBAdminDataStorage {
 		try
 		{
 			log.log(Level.INFO, "get record for key {0}", dataid);
-			return (T) sqlDataStorageDao.getRecord(dataClass, KEY_FILED_NAME, dataid);
+			return (T) sqlDataStorageDao.getRecord(dataClass, keyFieldName, dataid);
 		} catch (Exception e)
 		{
 			throw new WPBIOException("Cannot add new record", e);
@@ -215,7 +220,7 @@ public class WPBSQLAdminDataStorage implements WPBAdminDataStorage {
 		try
 		{
 			log.log(Level.INFO, "update record for class {0}", t.getClass().getSimpleName());
-			sqlDataStorageDao.updateRecord(t, KEY_FILED_NAME);
+			sqlDataStorageDao.updateRecord(t, keyFieldName);
 			return t;
 		} catch (Exception e)
 		{
